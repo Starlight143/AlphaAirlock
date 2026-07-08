@@ -1,0 +1,46 @@
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+pandas>=2.2.0
+numpy>=2.0.0
+sqlalchemy>=2.0.30
+pydantic>=2.8.0
+anthropic>=0.35.0
+yfinance>=0.2.40
+scipy>=1.13.0
+python-multipart>=0.0.18,<0.1.0
+httpx>=0.27.0
+python-dotenv>=1.0.1
+pyyaml>=6.0.1
+feedparser>=6.0.11
+# P6 — Granger causality (B5), KB cross-linking via TF-IDF (B3), semantic retrieval (D04)
+scikit-learn>=1.4
+statsmodels>=0.14
+# P6 — Real source fetchers (B4)
+youtube-transcript-api>=0.6.2
+arxiv>=2.1.0
+# P6 — Factor network graph analytics (existing PageRank/communities path)
+networkx>=3.2
+# P6-D05 — Full-text article enrichment (bypasses RSS teasers via direct
+# fetch / proxy).  Default-OFF via ARTICLE_ENRICH_ENABLED.  trafilatura is
+# lightweight (~15 MB resident, no torch); lazy-imported so the backend boots
+# without it if the feature is left disabled.
+# lxml: trafilatura's parser backend. Pinned explicitly (it would otherwise be
+# an implicit transitive dep) for reproducibility; <6 keeps it on the 5.x line
+# trafilatura 1.9.x supports. If pip reports "Cannot uninstall lxml None / no
+# RECORD file was found", the launchers auto-run:
+#   pip install --force-reinstall --no-deps lxml
+# then retry the install.
+lxml>=5.2,<6
+trafilatura>=1.9.0
+# Full-text PDF extraction for paper repositories (e.g. BIS working papers),
+# whose article page carries only a summary and links the real paper as a
+# separate PDF. Pure-Python, no system deps; lazy-imported so the backend boots
+# without it when ARTICLE_ENRICH_PDF is off. Text-based PDFs only (no OCR).
+pypdf>=4.0,<6
+# P8-FIX/C-5 — Discord inbound /intake bot. Default-OFF via
+# DISCORD_INBOUND_ENABLED env flag; needs DISCORD_BOT_TOKEN +
+# DISCORD_ALLOWED_CHANNEL_IDS allowlist before the gateway connects.
+# P15/D-L20 — pin to major v2 so a future v3 release can't silently break
+# the gateway connection. Inbound bot doesn't need PyNaCl (voice extra) so
+# extras are deliberately omitted.
+discord.py>=2.3.0,<3.0

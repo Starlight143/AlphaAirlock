@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #__next {
+  height: 100%;
+  background-color: #020617; /* slate-950 */
+  color: #e2e8f0;             /* slate-200 */
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Page-root scroll fix (app-wide). Every (shell) page authors its root as
+   `flex h-full w-full flex-col gap-3 overflow-y-auto p-3`. As a flex column
+   bounded by <main> (min-h-0), the section children default to flex-shrink:1
+   and get COMPRESSED to fit the viewport instead of stacking — charts lose
+   hundreds of px and the bottom card (e.g. BG Pipeline Gate Criteria) is
+   clipped to a sliver with no way to scroll to it. Pinning the page-root's
+   direct children to flex-shrink:0 makes them keep natural height; the root
+   then genuinely overflows and its `overflow-y-auto` scrolls. Scoped to
+   #main-content's immediate scroll container so nested flex-col scrollers
+   (drawers, 3-pane explorers) are unaffected. */
+#main-content > .flex.flex-col.overflow-y-auto > * {
+  flex-shrink: 0;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.6);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(71, 85, 105, 0.7);
+  border-radius: 6px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.9);
+}
+
+.glass-overlay {
+  background: rgba(2, 6, 23, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* P6-L16: prose image styling. Constrains feed-ingested images to the column
+   width with rounded corners + breathing room, instead of letting native
+   <img> blow out a narrow drawer / preview pane. Applies only inside .prose
+   so dense UI surfaces (chat, charts) keep their custom <img> handling. */
+.prose img {
+  border-radius: 0.375rem;
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+  width: 100%;
+  height: auto;
+}

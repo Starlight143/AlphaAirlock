@@ -1,0 +1,40 @@
+{
+  "name": "agentic-alpha-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start -p 3000",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@tailwindcss/typography": "0.5.15",
+    "@tanstack/react-query": "^5.56.2",
+    "autoprefixer": "10.4.20",
+    "clsx": "2.1.1",
+    "katex": "^0.16.47",
+    "lucide-react": "0.439.0",
+    "next": "14.2.5",
+    "postcss": "8.4.41",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-markdown": "9.0.1",
+    "react-window": "^1.8.11",
+    "recharts": "2.12.7",
+    "rehype-katex": "^7.0.1",
+    "remark-math": "^6.0.0",
+    "tailwindcss": "3.4.10",
+    "vis-data": "7.1.9",
+    "vis-network": "9.1.9"
+  },
+  "devDependencies": {
+    "@types/node": "20.16.1",
+    "@types/react": "18.3.4",
+    "@types/react-dom": "18.3.0",
+    "@types/react-window": "^1.8.8",
+    "eslint": "8.57.0",
+    "eslint-config-next": "14.2.5",
+    "typescript": "5.5.4"
+  }
+}

@@ -1,0 +1,56 @@
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.env
+node_modules/
+.next/
+out/
+dist/
+build/
+backend/data/*.db
+backend/data/*.db-journal
+# Fetched market data (real OHLCV/funding/OI) — regenerate via
+# `python -m backend.core.market_data`; not source, never committed.
+backend/data/synthetic_btc.csv
+# Runtime/derived data — prices, fetched asset images, backtest/paper/sim
+# results, LLM-budget + inbound state. All regenerated; never source.
+storage/
+pipeline_errors.log
+.tmp_*
+*.log
+.DS_Store
+# P31-S1: Local backup folder may contain secrets — never commit
+備份/
+backup/
+backups/
+.env.*
+!.env.example
+# Tooling / session caches + local backups (never source)
+.claude/
+.pytest_cache/
+.audit*_backup/
+# SQLite sidecar files (WAL/SHM) anywhere
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+# TypeScript incremental build cache
+*.tsbuildinfo
+
+# Local DB backups (manual safety copies)
+*.db.bak-*
+
+# Ad-hoc screenshot dumps (personal scratch, not repo assets)
+影片中的圖片/
+Snipaste_*.png
+
+# AI-assistant harness (local, not published)
+CLAUDE.md
+
+# Chinese README — personal reference, not published
+README_zh.md
+
+# Internal audit report — not for public release
+AUDIT_REPORT.md

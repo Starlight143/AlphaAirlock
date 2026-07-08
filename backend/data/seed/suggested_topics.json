@@ -1,0 +1,66 @@
+{
+  "_comment": "Fallback Alpha Lab Suggested Topics rail. Used when the KB has fewer than the requested limit of concept-kind nodes. Pads the rail so first-run UX is not empty. Curated to span the alpha categories the reference system highlights.",
+  "version": 1,
+  "topics": [
+    {
+      "id": "seed-funding-mr",
+      "title": "Funding-rate mean-reversion when |fr| > 2σ",
+      "chip": "queued"
+    },
+    {
+      "id": "seed-oi-divergence",
+      "title": "Open-interest divergence vs. spot momentum",
+      "chip": "queued"
+    },
+    {
+      "id": "seed-liq-bounce",
+      "title": "Post-liquidation reversal scalp on |liq| > 95th pct",
+      "chip": "queued"
+    },
+    {
+      "id": "seed-basis-carry",
+      "title": "Quarterly perp-spot basis carry premium",
+      "chip": "queued"
+    },
+    {
+      "id": "seed-gex-pin",
+      "title": "Option dealer GEX pinning near monthly expiry",
+      "chip": "queued"
+    },
+    {
+      "id": "seed-vrp-short",
+      "title": "Realised-vs-implied vol risk premium harvesting",
+      "chip": "queued"
+    },
+    {
+      "id": "seed-onchain-flow",
+      "title": "Exchange netflow inflection points",
+      "chip": "queued"
+    },
+    {
+      "id": "seed-funding-cascade",
+      "title": "Cross-venue funding-rate cascade trades",
+      "chip": "queued"
+    },
+    {
+      "id": "seed-stable-depeg",
+      "title": "Stablecoin depeg arbitrage windows",
+      "chip": "queued"
+    },
+    {
+      "id": "seed-twap-fade",
+      "title": "TWAP-execution footprint fade",
+      "chip": "queued"
+    },
+    {
+      "id": "seed-coint-pair",
+      "title": "Cointegrated altcoin pair mean-reversion",
+      "chip": "queued"
+    },
+    {
+      "id": "seed-vol-regime",
+      "title": "Vol-regime conditional momentum / MR switch",
+      "chip": "queued"
+    }
+  ]
+}
