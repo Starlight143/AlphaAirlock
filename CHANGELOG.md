@@ -2,6 +2,20 @@
 
 Notable changes to this project. Newest first.
 
+## v1.0.1
+
+### Fixed
+- **Equity price-data resolution.** Sim accounts and the factor evaluator no
+  longer assume the crypto `<SYM>-USDT.csv` filename for every instrument; they
+  resolve through `universe.price_csv_path()`, so US equities (SPY, AAPL, …) load
+  their real `<SYM>.csv` series. Fixes a "Market data missing for SPY" error in
+  Sim Account and stops equity strategies from silently backtesting on the
+  synthetic BTC series. BTC and crypto paths unchanged.
+
+## v1.0.0 — first public release
+
+Initial open-source release; feature history below.
+
 ## P8 — Reference-alignment overhaul
 
 A large batch of UI + pipeline alignment work.
