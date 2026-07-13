@@ -137,12 +137,16 @@ def _resolve_symbol(config_json: Optional[str]) -> str:
 
 
 def _market_csv_for(symbol: str) -> Path:
-    """BTC -> the 9-col primary (carries funding); else the per-asset universe
-    file. Mirrors market_data's on-disk layout."""
+    """BTC -> the 9-col primary (carries funding); else the per-asset file via
+    the canonical universe resolver (equities are ``<SYM>.csv``, crypto
+    ``<SYM>-USDT.csv``). Mirrors market_data's on-disk layout."""
     sym = (symbol or "BTC").strip().upper()
     if sym in {"BTC", "BTC-USDT", "BTCUSDT"}:
         return BTC_PRIMARY_CSV
-    return PRICES_DIR / f"{sym}-USDT.csv"
+    # Route non-BTC through the universe so equities (SPY, AAPL, …) resolve to
+    # ``<SYM>.csv`` instead of a non-existent ``<SYM>-USDT.csv``.
+    from backend.core import universe
+    return universe.price_csv_path(sym)
 
 
 def _to_utc(ts: Any) -> pd.Timestamp:

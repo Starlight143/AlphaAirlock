@@ -89,19 +89,21 @@ def _load_price_window(
     period_end: Optional[str],
     asset_symbol: str = "BTC",
 ) -> pd.DataFrame:
-    # P12/C-L5 — prefer real per-asset CSV under storage/prices/<SYM>-USDT.csv
-    # when it exists; otherwise fall back to the bundled synthetic BTC series
-    # so the factor studio still works in a fresh checkout.
+    # P12/C-L5 — prefer the real per-asset CSV via the canonical universe
+    # resolver (equities are ``<SYM>.csv``, crypto ``<SYM>-USDT.csv``); otherwise
+    # fall back to the bundled synthetic BTC series so the factor studio still
+    # works in a fresh checkout.
     sym = (asset_symbol or "BTC").strip().upper() or "BTC"
-    asset_csv = ASSET_PRICES_DIR / f"{sym}-USDT.csv"
-    # P-REALDATA — on-demand fetch: if a strategy asks for a trading pair we
-    # have not downloaded yet, pull its real data now (best-effort; gated by
-    # MARKET_DATA_AUTO_FETCH, default ON). Never blocks evaluation on failure.
+    from backend.core import universe
+    asset_csv = universe.price_csv_path(sym)
+    # P-REALDATA — on-demand fetch: if a strategy asks for an instrument we have
+    # not downloaded yet, pull its real data now, routed per asset class (crypto
+    # via Binance, equities via Yahoo). Best-effort, gated by MARKET_DATA_AUTO_FETCH
+    # (default ON); never blocks evaluation on failure.
     if not asset_csv.exists() and _auto_fetch_enabled():
         try:
-            from backend.core.market_data import ensure_symbol
-            if ensure_symbol(f"{sym}-USDT"):
-                logger.info("factor_evaluator: auto-fetched real data for %s", sym)
+            if universe.ensure_price_data(sym):
+                logger.info("factor_evaluator: ensured real data for %s", sym)
         except Exception:  # noqa: BLE001
             logger.warning("factor_evaluator: auto-fetch of %s failed; "
                            "falling back to bundled series", sym, exc_info=True)
