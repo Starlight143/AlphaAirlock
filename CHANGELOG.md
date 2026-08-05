@@ -2,6 +2,17 @@
 
 Notable changes to this project. Newest first.
 
+## v1.0.2
+
+### Fixed
+- **Sim Account could not run equity strategies.** The LLM-code sandbox requires
+  the full canonical column set, but the sim loaded equity CSVs as OHLCV-only, so
+  pinning an equity (e.g. SPY) raised a `RuntimeError` ("missing required
+  lowercase columns"). `_signal_array` now backfills the derivative columns
+  (open_interest / funding_rate / liquidations) as 0.0 on a copy before the
+  sandbox — matching the backtest path, without modelling phantom funding on
+  equities.
+
 ## v1.0.1
 
 ### Fixed
