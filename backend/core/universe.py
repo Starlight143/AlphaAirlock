@@ -414,7 +414,12 @@ def ensure_price_data(app_symbol: str) -> bool:
         if _file_present(path) and _file_is_fresh(path, equity_data_max_age_days()):
             return True
         try:
-            ok = md.ensure_equity_symbol(inst.app_symbol, out_path=path)
+            # We only reach here when the CSV is missing or stale. force=True is
+            # required because ensure_equity_symbol() short-circuits on ANY
+            # existing file — without it a stale CSV would never refresh (the
+            # freshness gate above bounds this to at most one fetch per
+            # max_age_days, since a successful fetch rewrites the file's mtime).
+            ok = md.ensure_equity_symbol(inst.app_symbol, out_path=path, force=True)
         except Exception:  # noqa: BLE001 — never let a fetch sink the pipeline
             logger.exception("universe: equity fetch failed for %s", inst.app_symbol)
             return _file_present(path)
