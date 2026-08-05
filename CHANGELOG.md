@@ -2,6 +2,16 @@
 
 Notable changes to this project. Newest first.
 
+## v1.0.3
+
+### Fixed
+- **Stale equity data never auto-refreshed.** `universe.ensure_price_data`
+  detected a stale equity CSV but called `ensure_equity_symbol` without
+  `force=True`, and that helper short-circuits on any existing file — so the
+  refresh was a silent no-op (`ensure_price_data("SPY")` returned True without
+  fetching). It now forces the re-fetch on the stale/missing path, bounded to
+  at most once per `EQUITY_DATA_MAX_AGE_DAYS` by the mtime freshness gate.
+
 ## v1.0.2
 
 ### Fixed

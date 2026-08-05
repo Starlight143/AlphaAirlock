@@ -129,7 +129,7 @@ async def lifespan(app: FastAPI):  # noqa: D401
 
 app = FastAPI(
     title="Agentic Alpha Research System",
-    version="1.0.2",
+    version="1.0.3",
     description="Multi-agent quant research pipeline (Intake -> Researcher -> Coder -> Backtest -> Critic).",
     lifespan=lifespan,
 )
