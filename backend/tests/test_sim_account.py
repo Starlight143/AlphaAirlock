@@ -112,10 +112,31 @@ def test_flat_signal_no_fills() -> None:
     assert all(abs(b["ret"]) < 1e-12 for b in curve)
 
 
+def test_signal_array_backfills_equity_derivative_columns() -> None:
+    # Regression (SPY sim bug): equities carry only OHLCV, but the sandbox
+    # requires the full canonical column set. _signal_array must backfill the
+    # derivative columns (open_interest / funding_rate / liquidations) on a COPY
+    # so an equity factor runs — without mutating the ledger df, which keys
+    # funding modelling off funding_rate's presence in _decide_and_replay.
+    idx = pd.date_range("2024-01-01 00:00:00+00:00", periods=40, freq="h")
+    close = pd.Series(range(100, 140), index=idx, dtype=float)
+    df = pd.DataFrame(
+        {"open": close, "high": close + 1.0, "low": close - 1.0,
+         "close": close, "volume": 1000.0},
+        index=idx,
+    )
+    sig = sa._signal_array(
+        "def compute_factor(df):\n    return df['close'].diff().fillna(0.0)", df
+    )
+    assert list(sig.index) == list(df.index)                 # aligned, no raise
+    assert set(df.columns) == {"open", "high", "low", "close", "volume"}  # not mutated
+
+
 if __name__ == "__main__":
     test_long_round_trip_fills_and_costs()
     test_long_pays_positive_funding()
     test_short_receives_positive_funding()
     test_reticking_is_idempotent()
     test_flat_signal_no_fills()
+    test_signal_array_backfills_equity_derivative_columns()
     print("sim_account ledger tests passed")

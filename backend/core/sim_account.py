@@ -198,8 +198,19 @@ def _is_funding_settlement(ts: pd.Timestamp) -> bool:
 def _signal_array(factor_code: str, df: pd.DataFrame) -> "pd.Series":
     """Run the (untrusted, LLM-generated) factor in the sandbox and return a
     signal Series aligned to ``df.index``, clipped to [-1, 1]."""
+    # Equities carry only OHLCV, but the sandbox requires the full canonical
+    # column set (open_interest / funding_rate / liquidations). Add them as 0.0
+    # on a COPY — matching the backtest/factor_evaluator normalization — so the
+    # factor sees the same schema without mutating the ledger df (which keys
+    # funding modelling off funding_rate's presence in ``_decide_and_replay``).
+    feed = df
+    missing = [c for c in ("open_interest", "funding_rate", "liquidations") if c not in df.columns]
+    if missing:
+        feed = df.copy()
+        for c in missing:
+            feed[c] = 0.0
     try:
-        res = safe_execute_factor(factor_code, df)
+        res = safe_execute_factor(factor_code, feed)
     except (SandboxValidationError, SandboxExecutionError) as exc:
         raise RuntimeError(f"Sandbox rejected factor code: {exc}") from exc
     sig = pd.to_numeric(res.signal, errors="coerce")
