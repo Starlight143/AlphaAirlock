@@ -2,6 +2,18 @@
 
 Notable changes to this project. Newest first.
 
+## v1.1.0
+
+### Added
+- **Full-history strategy search.** `GET /api/strategies` accepts optional
+  `q` / `status` / `limit` / `offset`. `q` matches name, `alpha_id`, or an exact
+  `S#<id>` / `<id>`, evaluated in SQL across the whole table; the response also
+  returns `total` / `limit` / `offset`. A bare call is unchanged (newest page).
+- The Mission Control stage drill-down search box now queries the server
+  (debounced), so strategies older than the newest-1000 window are findable
+  instead of being invisible to the client-side filter. An "all history" chip
+  marks when a search spans the full history.
+
 ## v1.0.3
 
 ### Fixed
