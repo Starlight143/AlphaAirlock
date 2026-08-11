@@ -72,9 +72,26 @@ export default function StageDrillDownModal({ bucket, onClose }: Props) {
   const qc = useQueryClient();
   const sq = useQuery({
     queryKey: queryKeys.strategies,
-    queryFn: api.strategies,
+    queryFn: () => api.strategies(),
     enabled: !!bucket,
     refetchInterval: bucket ? 10_000 : false,
+  });
+
+  // The unfiltered list only carries the newest page, so a name/id older than
+  // that window is invisible to a purely client-side filter. Debounce the box
+  // and, once there is a needle, ask the backend to search the WHOLE table.
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search.trim()), 300);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  const serverSearch = useQuery({
+    queryKey: queryKeys.strategySearch(debouncedSearch, statusFilter),
+    queryFn: () =>
+      api.strategiesSearch({ q: debouncedSearch, status: statusFilter, limit: 200 }),
+    enabled: !!bucket && debouncedSearch.length > 0,
+    staleTime: 15_000,
   });
 
   // P16 A-M2 — track *which* row is currently re-cloning so the
@@ -134,13 +151,19 @@ export default function StageDrillDownModal({ bucket, onClose }: Props) {
 
   // Pre-filter the strategies in this bucket so the actor dropdown only
   // surfaces values that are actually selectable.
+  // While searching, take the server's whole-table result set (so older
+  // strategies surface); otherwise the newest-page list. Either way the bucket's
+  // own statuses still bound what this stage may show.
+  const isSearching = debouncedSearch.length > 0;
   const inBucket = useMemo(() => {
-    if (!bucket || !sq.data) return [] as AlphaStrategy[];
+    if (!bucket) return [] as AlphaStrategy[];
+    const source = isSearching ? serverSearch.data : sq.data;
+    if (!source) return [] as AlphaStrategy[];
     const allowed = new Set(bucket.statuses.map((x) => x.toUpperCase()));
-    return (sq.data.strategies ?? []).filter((s) =>
+    return (source.strategies ?? []).filter((s) =>
       allowed.has((s.status || '').toUpperCase()),
     );
-  }, [bucket, sq.data]);
+  }, [bucket, sq.data, serverSearch.data, isSearching]);
 
   const actorOptions = useMemo(() => {
     const set = new Set<string>();
@@ -163,7 +186,11 @@ export default function StageDrillDownModal({ bucket, onClose }: Props) {
   const visible = useMemo(() => {
     if (!bucket) return [] as AlphaStrategy[];
     let rows = inBucket;
-    if (search.trim()) {
+    // When the needle went to the server, rows are already matched over the
+    // whole table (including by slug, which is derived from name) — re-filtering
+    // here would only drop valid hits. Keep the local filter for the brief
+    // window before the debounce fires.
+    if (search.trim() && !isSearching) {
       const needle = search.trim().toLowerCase();
       rows = rows.filter(
         (s) =>
@@ -192,7 +219,7 @@ export default function StageDrillDownModal({ bucket, onClose }: Props) {
       return B.localeCompare(A);
     });
     return rows;
-  }, [bucket, inBucket, search, statusFilter, actorFilter, sort]);
+  }, [bucket, inBucket, search, isSearching, statusFilter, actorFilter, sort]);
 
   if (!bucket) return null;
 
@@ -295,6 +322,14 @@ export default function StageDrillDownModal({ bucket, onClose }: Props) {
           />
           <span className="ml-auto flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-slate-500">
             {visible.length} matching
+            {isSearching && !serverSearch.isLoading && (
+              <span
+                className="rounded border border-cyan-700/40 bg-cyan-500/10 px-1 py-0.5 text-[8px] font-bold uppercase tracking-wider text-cyan-300"
+                title="This search queries the full strategy history on the server, not just the most recent page held in the browser."
+              >
+                all history
+              </span>
+            )}
             {/* F14-7 — stale-data indicator: when no filters are active, the
                 client-side inBucket count should equal bucket.count (backend).
                 A divergence means the strategies list (10 s refetch) is out of
@@ -317,14 +352,16 @@ export default function StageDrillDownModal({ bucket, onClose }: Props) {
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          {sq.isLoading ? (
+          {sq.isLoading || (isSearching && serverSearch.isLoading) ? (
             <div className="flex h-32 items-center justify-center text-xs text-slate-500">
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Loading strategies…
+              {isSearching ? 'Searching all strategies…' : 'Loading strategies…'}
             </div>
           ) : visible.length === 0 ? (
             <div className="p-8 text-center text-xs text-slate-500">
-              No strategies in this stage.
+              {isSearching
+                ? 'No strategies match this search in this stage.'
+                : 'No strategies in this stage.'}
             </div>
           ) : (
             <ul className="divide-y divide-slate-800">

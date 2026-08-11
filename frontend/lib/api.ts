@@ -754,7 +754,23 @@ export const api = {
   knowledge: () => json<{ nodes: KnowledgeNode[] }>(`${API_BASE}/api/knowledge`),
   knowledgeOne: (id: number) =>
     json<KnowledgeNode>(`${API_BASE}/api/knowledge/${id}`),
-  strategies: () => json<{ strategies: AlphaStrategy[] }>(`${API_BASE}/api/strategies`),
+  // Newest page, unchanged — safe to pass directly as a TanStack `queryFn`
+  // (which would otherwise inject its context object as the first argument).
+  strategies: () =>
+    json<{ strategies: AlphaStrategy[]; total?: number }>(`${API_BASE}/api/strategies`),
+  // Searches the WHOLE strategy table server-side, so entries older than the
+  // newest page are reachable instead of being capped out of the client list.
+  strategiesSearch: (opts: { q?: string; status?: string; limit?: number; offset?: number }) => {
+    const params = new URLSearchParams();
+    if (opts.q) params.set('q', opts.q);
+    if (opts.status && opts.status !== 'all') params.set('status', opts.status);
+    if (opts.limit != null) params.set('limit', String(opts.limit));
+    if (opts.offset != null) params.set('offset', String(opts.offset));
+    const qs = params.toString();
+    return json<{ strategies: AlphaStrategy[]; total?: number; limit?: number; offset?: number }>(
+      `${API_BASE}/api/strategies${qs ? `?${qs}` : ''}`,
+    );
+  },
   strategy: (id: number) => json<AlphaStrategy>(`${API_BASE}/api/strategies/${id}`),
   strategyConcepts: (id: number) =>
     json<StrategyConceptsResponse>(`${API_BASE}/api/strategies/${id}/concepts`),

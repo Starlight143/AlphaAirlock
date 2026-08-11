@@ -7,6 +7,8 @@ import { QueryClient } from '@tanstack/react-query';
 export const queryKeys = {
   health: ['health'] as const,
   strategies: ['strategies'] as const,
+  // Server-side strategy search (whole table, not just the newest page).
+  strategySearch: (q: string, status: string) => ['strategies', 'search', q, status] as const,
   strategy: (id: number) => ['strategy', id] as const,
   graph: ['graph'] as const,
   knowledge: ['knowledge'] as const,

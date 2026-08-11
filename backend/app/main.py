@@ -1204,14 +1204,65 @@ def post_knowledge_relink(
 
 
 @app.get("/api/strategies")
-def list_strategies(principal: str = Depends(require_operator), db: Session = Depends(get_db)) -> Dict[str, Any]:
+def list_strategies(
+    principal: str = Depends(require_operator),
+    db: Session = Depends(get_db),
+    q: Optional[str] = None,
+    status: Optional[str] = None,
+    limit: int = _LIST_HARD_LIMIT,
+    offset: int = 0,
+) -> Dict[str, Any]:
+    """List strategies, newest first.
+
+    Without arguments this is the historical call: the newest ``_LIST_HARD_LIMIT``
+    rows. The optional filters exist so the UI can reach strategies OLDER than
+    that window instead of being permanently capped at the newest page:
+
+      * ``q``      — case-insensitive substring over name / alpha_id, or an exact
+                     ``S#<id>`` / ``<id>`` match. Applied in SQL over the WHOLE
+                     table, so a match older than the newest page is still found.
+      * ``status`` — exact status match (case-insensitive), e.g. ``APPROVED``.
+      * ``limit`` / ``offset`` — page through the result set.
+
+    ``total`` is the count BEFORE limit/offset so the client can tell whether
+    more rows exist beyond the current page.
+    """
+    from sqlalchemy import func as _func, or_ as _or
+
+    query = db.query(AlphaStrategy)
+
+    if status and status.strip() and status.strip().lower() != "all":
+        query = query.filter(_func.upper(AlphaStrategy.status) == status.strip().upper())
+
+    needle = (q or "").strip()
+    if needle:
+        # "S#123" / "123" -> also match that exact id, so operators can jump
+        # straight to a strategy by the id the UI displays.
+        bare = needle[2:] if needle.lower().startswith("s#") else needle
+        clauses = [
+            AlphaStrategy.name.ilike(f"%{needle}%"),
+            AlphaStrategy.alpha_id.ilike(f"%{needle}%"),
+        ]
+        if bare.isdigit():
+            clauses.append(AlphaStrategy.id == int(bare))
+        query = query.filter(_or(*clauses))
+
+    total = query.count()
+    # Clamp so a hand-crafted request cannot ask the DB for an unbounded scan.
+    capped = max(1, min(int(limit or _LIST_HARD_LIMIT), _LIST_HARD_LIMIT))
+    start = max(0, int(offset or 0))
     rows = (
-        db.query(AlphaStrategy)
-        .order_by(AlphaStrategy.id.desc())
-        .limit(_LIST_HARD_LIMIT)
+        query.order_by(AlphaStrategy.id.desc())
+        .offset(start)
+        .limit(capped)
         .all()
     )
-    return {"strategies": [r.to_dict() for r in rows]}
+    return {
+        "strategies": [r.to_dict() for r in rows],
+        "total": total,
+        "limit": capped,
+        "offset": start,
+    }
 
 
 @app.get("/api/strategies/{strategy_id}/concepts")
